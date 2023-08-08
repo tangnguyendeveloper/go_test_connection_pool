@@ -103,11 +103,34 @@ func InitConnection(pool *puddle.Pool[net.Conn], num_connection uint, server_add
 }
 
 func ReconnectForever(pool *puddle.Pool[net.Conn], maxPoolSize int32, server_address *net.TCPAddr, reconnect_interval_in_second time.Duration) {
+
+	one := make([]byte, 1)
+
+	timeout := 3 * time.Second
+
 	for {
 
 		// If the pool have no one connection, it should be to reconnect.
+
 		if pool.Stat().TotalResources() == 0 {
 			InitConnection(pool, 1, server_address)
+		}
+		// remove connections lost
+
+		for _, connection := range pool.AcquireAllIdle() {
+			connection.Value().(*net.TCPConn).SetReadDeadline(time.Now().Add(timeout))
+			_, err := connection.Value().Read(one)
+
+			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+				connection.Release()
+				continue
+			} else if err != nil {
+				connection.Destroy()
+				continue
+			}
+
+			connection.Release()
+
 		}
 
 		// Optional: the TCP connection will remove if it is idle.
@@ -137,6 +160,8 @@ func RunTask(pool *puddle.Pool[net.Conn], message string, server_address *net.TC
 		log.Println(err)
 		return
 	}
+
+	res.Value().SetDeadline(time.Time{})
 
 	// encapsulation message
 	msg := diam.NewRequest(diam.Accounting, 0, nil)
