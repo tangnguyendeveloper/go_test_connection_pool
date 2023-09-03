@@ -26,3 +26,13 @@ sudo apt update -y && sudo apt install mosquitto-clients -y
 mosquitto_sub -h localhost -p 31883 -t sensor/test
 
 ```
+
+## Delete services
+
+```
+
+kubectl delete -f ./Client/CpoolC.yaml
+kubectl delete -f ./Server/CpoolS.yaml
+kubectl delete -f mqtt_broker.yaml 
+
+```
