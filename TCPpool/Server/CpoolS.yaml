@@ -1,0 +1,40 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: tcp-cpools-deployment 
+  labels: 
+    app: tcp-cpools-app
+    type: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tcp-cpools-app
+      type: server
+  template:
+    metadata:
+      labels:
+        app: tcp-cpools-app
+        type: server
+    spec:
+      containers:
+      - name: tcp-cpools-container
+        image: localhost:32000/cpools:test
+        ports:
+        - containerPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: tcp-cpools-service
+spec: 
+  type: ClusterIP
+  selector: 
+    app: tcp-cpools-app
+    type: server
+  ports: 
+    - targetPort: 8080
+      port: 8080
+      protocol: TCP

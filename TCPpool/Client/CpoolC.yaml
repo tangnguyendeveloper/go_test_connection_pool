@@ -1,0 +1,22 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: tcp-cpoolc-deployment 
+  labels: 
+    app: tcp-cpoolc-app
+    type: client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tcp-cpoolc-app
+      type: client
+  template:
+    metadata:
+      labels:
+        app: tcp-cpoolc-app
+        type: client
+    spec:
+      containers:
+      - name: tcp-cpoolc-container
+        image: localhost:32000/cpoolc:test

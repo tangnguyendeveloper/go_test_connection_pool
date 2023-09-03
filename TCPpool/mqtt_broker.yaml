@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto-deployment
+  labels: 
+    app: mosquitto-app
+    type: broker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto-app
+      type: broker
+  template:
+    metadata:
+      labels:
+        app: mosquitto-app
+        type: broker
+    spec:
+      containers:
+      - name: mosquitto-container
+        image: eclipse-mosquitto
+        ports:
+        - containerPort: 1883
+        volumeMounts:
+        - mountPath: /mosquitto/config/mosquitto.conf
+          subPath: mosquitto.conf
+          name: config
+      volumes:
+      - name: config
+        configMap:
+          name: mosquitto-config
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+data:
+  mosquitto.conf: |
+    persistence true
+    persistence_location /mosquitto/data/
+    log_dest file /mosquitto/log/mosquitto.log
+    
+    allow_anonymous true
+
+    listener 1883 0.0.0.0
+    protocol mqtt
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto-service
+spec:
+  type: NodePort
+  selector:
+    app: mosquitto-app  
+  ports:
+  - port: 1883
+    targetPort: 1883
+    nodePort: 31883
+    protocol: TCP
