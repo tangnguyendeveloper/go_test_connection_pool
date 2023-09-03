@@ -8,7 +8,7 @@ sudo docker build ./Client -t localhost:32000/cpoolc:test
 ```
 ## Push images to registry
 
-## Create service
+## Create services
 
 ```
 
